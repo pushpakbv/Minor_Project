@@ -14,7 +14,7 @@ const Login = () => {
       setError('');
       const response = await axios.post('/auth/login', { email, password });
       localStorage.setItem('token', response.data.token);
-      navigate('/feed');
+      navigate('/');
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed');
     }
