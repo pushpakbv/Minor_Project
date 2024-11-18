@@ -27,3 +27,52 @@ Testing and Security:
 
 Implement JWT verification middleware for secure routes.
 Use tools like Postman to test API endpoints.
+
+
+
+src
+├── assets/
+├── components/
+│   ├── Comment.jsx
+│   ├── Post.jsx
+│   ├── PostList.jsx
+│   └── PrivateRoute.jsx
+├── pages/
+│   ├── Community.jsx
+│   ├── CreatePost.jsx
+│   ├── Feed.jsx
+│   ├── Login.jsx
+│   ├── Profile.jsx
+│   └── Signup.jsx
+├── store/
+│   ├── useAuth.js
+│   └── useStore.js
+└── utils/
+│   └── axios.js.
+├── App.jsx
+├── App.css
+├── index.css
+└── main.jsx
+
+
+
+backend
+├── config/
+├── controllers/
+│   ├── postController.js
+│   └── userController.js
+├── middlewares/
+│   └── authMiddleware.js
+├── models/
+│   ├── Post.js
+│   └── User.js
+├── node_modules/
+├── routes/
+│   ├── authRoutes.js
+│   └── postRoutes.js
+├── uploads/
+├── .env
+├── .gitignore
+├── package-lock.json
+├── package.json
+└── server.js

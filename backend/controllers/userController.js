@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+
 exports.register = async (req, res) => {
   const { username, email, password } = req.body;
   try {
@@ -49,6 +50,15 @@ exports.login = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+};
+
+exports.logout =  (req, res) => {
+    try {
+        res.clearCookie('token');
+        res.status(200).send({ message: 'Logged out successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
 // exports.logout = (req, res) => {
