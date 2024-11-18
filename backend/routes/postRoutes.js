@@ -1,10 +1,12 @@
 const express = require('express');
 const multer = require('multer');
-const Post = require('../models/Post');
 const authenticate = require('../middlewares/authMiddleware');
 const path = require('path');
+const {createPost, getPosts, likePost,getComments,commentPost} = require('../controllers/postController');
 
 const router = express.Router();
+
+
 
 // Configure Multer for file uploads
 const storage = multer.diskStorage({
@@ -35,105 +37,112 @@ const upload = multer({
 });
 
 // Create a new post
-router.post('/create', authenticate, upload.single('media'), async (req, res) => {
-  try {
-    const { text } = req.body;
+// router.post('/create', authenticate, upload.single('media'), async (req, res) => {
+//   try {
+//     const { text } = req.body;
     
-    // Create the full URL for the media file
-    const mediaUrl = req.file 
-      ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
-      : null;
+//     // Create the full URL for the media file
+//     const mediaUrl = req.file 
+//       ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+//       : null;
 
-    const newPost = new Post({
-      userId: req.user.id,
-      text,
-      media: mediaUrl,
-    });
+//     const newPost = new Post({
+//       userId: req.user.id,
+//       text,
+//       media: mediaUrl,
+//     });
 
-    await newPost.save();
-    res.status(201).json({ message: 'Post created successfully', post: newPost });
-  } catch (error) {
-    console.error('Post creation error:', error);
-    res.status(500).json({ error: 'Failed to create post' });
-  }
-});
+//     await newPost.save();
+//     res.status(201).json({ message: 'Post created successfully', post: newPost });
+//   } catch (error) {
+//     console.error('Post creation error:', error);
+//     res.status(500).json({ error: 'Failed to create post' });
+//   }
+// });
 
+router.post('/create', authenticate, upload.single('media'), createPost);
+router.get('/', getPosts);
+router.post('/:postId/like', authenticate, likePost);
+router.post('/:postId/comment', authenticate, commentPost);
+router.get('/:postId/comments', getComments);
+
+module.exports = router;
 // Fetch all posts
-router.get('/', async (req, res) => {
-  try {
-    const posts = await Post.find().sort({ createdAt: -1 });
-    res.status(200).json({ posts });
-  } catch (error) {
-    res.status(500).json({ error: 'Error fetching posts' });
-  }
-});
+// router.get('/', async (req, res) => {
+//   try {
+//     const posts = await Post.find().sort({ createdAt: -1 });
+//     res.status(200).json({ posts });
+//   } catch (error) {
+//     res.status(500).json({ error: 'Error fetching posts' });
+//   }
+// });
 
 /**
  * Like or Unlike a Post
  */
-router.post('/:postId/like', authenticate, async (req, res) => {
-  try {
-    const { postId } = req.params;
-    const userId = req.user.id;
+// router.post('/:postId/like', authenticate, async (req, res) => {
+//   try {
+//     const { postId } = req.params;
+//     const userId = req.user.id;
 
-    const post = await Post.findById(postId);
-    if (!post) return res.status(404).json({ message: 'Post not found' });
+//     const post = await Post.findById(postId);
+//     if (!post) return res.status(404).json({ message: 'Post not found' });
 
-    // Toggle like
-    if (post.likes.includes(userId)) {
-      post.likes = post.likes.filter((id) => id.toString() !== userId);
-    } else {
-      post.likes.push(userId);
-    }
+//     // Toggle like
+//     if (post.likes.includes(userId)) {
+//       post.likes = post.likes.filter((id) => id.toString() !== userId);
+//     } else {
+//       post.likes.push(userId);
+//     }
 
-    await post.save();
-    res.status(200).json({ message: 'Post updated successfully', likes: post.likes.length });
-  } catch (error) {
-    res.status(500).json({ error: 'Error liking/unliking post' });
-  }
-});
+//     await post.save();
+//     res.status(200).json({ message: 'Post updated successfully', likes: post.likes.length });
+//   } catch (error) {
+//     res.status(500).json({ error: 'Error liking/unliking post' });
+//   }
+// });
 
 /**
  * Add a Comment
  */
-router.post('/:postId/comment', authenticate, async (req, res) => {
-  try {
-    const { postId } = req.params;
-    const { comment } = req.body;
+// router.post('/:postId/comment', authenticate, async (req, res) => {
+//   try {
+//     const { postId } = req.params;
+//     const { comment } = req.body;
 
-    const post = await Post.findById(postId);
-    if (!post) return res.status(404).json({ message: 'Post not found' });
+//     const post = await Post.findById(postId);
+//     if (!post) return res.status(404).json({ message: 'Post not found' });
 
-    const newComment = {
-      userId: req.user.id,
-      comment,
-      createdAt: new Date(),
-    };
+//     const newComment = {
+//       userId: req.user.id,
+//       comment,
+//       createdAt: new Date(),
+//     };
 
-    post.comments.push(newComment);
-    await post.save();
+//     post.comments.push(newComment);
+//     await post.save();
 
-    res.status(201).json({ message: 'Comment added successfully', comments: post.comments });
-  } catch (error) {
-    res.status(500).json({ error: 'Error adding comment' });
-  }
-});
+//     res.status(201).json({ message: 'Comment added successfully', comments: post.comments });
+//   } catch (error) {
+//     res.status(500).json({ error: 'Error adding comment' });
+//   }
+// });
 
 /**
  * Fetch All Comments for a Post
  */
-router.get('/:postId/comments', async (req, res) => {
-  try {
-    const { postId } = req.params;
+// router.get('/:postId/comments', async (req, res) => {
+//   try {
+//     const { postId } = req.params;
 
-    const post = await Post.findById(postId).populate('comments.userId', 'username');
-    if (!post) return res.status(404).json({ message: 'Post not found' });
+//     const post = await Post.findById(postId).populate('comments.userId', 'username');
+//     if (!post) return res.status(404).json({ message: 'Post not found' });
 
-    res.status(200).json({ comments: post.comments });
-  } catch (error) {
-    res.status(500).json({ error: 'Error fetching comments' });
-  }
-});
+//     res.status(200).json({ comments: post.comments });
+//   } catch (error) {
+//     res.status(500).json({ error: 'Error fetching comments' });
+//   }
+// });
 
 module.exports = router;
 

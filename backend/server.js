@@ -2,16 +2,20 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const authRoutes = require('./routes/auth');
+const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
 const events = require('events');
 const path = require('path');
+const cookieParser = require('cookie-parser');
+
+
 
 // Load environment variables first
 dotenv.config();
 
 const app = express();
 
+app.use(cookieParser());
 
 // Configure CORS before any routes
 app.use(cors({
@@ -36,6 +40,7 @@ app.options('*', cors());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {
