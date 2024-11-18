@@ -21,7 +21,7 @@ const Post = ({ post }) => {
   const renderMedia = () => {
     if (!post.media || mediaError) return null;
 
-    const handleMediaError = (e) => {
+    const handleMediaError = () => {
       console.error('Media failed to load:', post.media);
       setMediaError(true);
     };
@@ -31,7 +31,7 @@ const Post = ({ post }) => {
         <video 
           src={post.media} 
           controls 
-          className="w-full rounded object-contain max-h-[500px]"
+          className="w-full h-64 rounded object-cover"
           onError={handleMediaError}
         />
       );
@@ -41,7 +41,7 @@ const Post = ({ post }) => {
       <img 
         src={post.media} 
         alt="Post content"
-        className="w-full rounded object-contain max-h-[500px]"
+        className="w-full h-64 rounded object-cover"
         onError={handleMediaError}
         loading="lazy"
       />
@@ -49,22 +49,24 @@ const Post = ({ post }) => {
   };
 
   return (
-    <div className="post bg-white shadow p-4 rounded-lg mb-4">
-      <p className="text-gray-700">{post.text}</p>
-      {post.media && !mediaError && (
-        <div className="media mt-3 min-h-[200px] flex items-center justify-center">
-          {renderMedia()}
+    <div className="post bg-white shadow-lg rounded-lg overflow-hidden">
+      <div className="p-4">
+        <p className="text-gray-700">{post.text}</p>
+        {post.media && !mediaError && (
+          <div className="media mt-3 min-h-[200px] flex items-center justify-center">
+            {renderMedia()}
+          </div>
+        )}
+        <div className="flex items-center justify-between mt-3">
+          <button
+            onClick={handleLike}
+            className="text-blue-500 hover:text-blue-700 focus:outline-none focus:ring focus:ring-blue-300 transition-transform transform hover:scale-105"
+          >
+            ❤️ {likes}
+          </button>
         </div>
-      )}
-      <div className="flex items-center justify-between mt-3">
-        <button
-          onClick={handleLike}
-          className="text-blue-500 hover:text-blue-700"
-        >
-          ❤️ {likes}
-        </button>
+        <Comments postId={post._id} />
       </div>
-      <Comments postId={post._id} />
     </div>
   );
 };

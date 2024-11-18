@@ -8,9 +8,14 @@ const Header = () => {
   return (
     <header className="bg-blue-600 text-white py-4 shadow-md">
       <div className="container mx-auto px-4 flex justify-between items-center">
-        <Link to="/" className="text-2xl font-bold">
-          TheCipher
+        <Link to="/" className="text-2xl font-bold flex items-center">
+          TheCipher  <img
+            src="../logo.jpeg"
+            className="mr-3 h-12 px-2"
+            alt="Logo"
+          />
         </Link>
+
         <div>
           {isAuthenticated ? (
             <>

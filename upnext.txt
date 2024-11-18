@@ -36,7 +36,10 @@ src
 │   ├── Comment.jsx
 │   ├── Post.jsx
 │   ├── PostList.jsx
-│   └── PrivateRoute.jsx
+│   └── ProtectedRoute.jsx
+│   └── Header.jsx
+│   └── Footer.jsx
+│   └── HeroSection.jsx
 ├── pages/
 │   ├── Community.jsx
 │   ├── CreatePost.jsx
@@ -44,6 +47,9 @@ src
 │   ├── Login.jsx
 │   ├── Profile.jsx
 │   └── Signup.jsx
+│   └── Home.jsx
+├── context/
+│   ├── AuthContext.jsx
 ├── store/
 │   ├── useAuth.js
 │   └── useStore.js
