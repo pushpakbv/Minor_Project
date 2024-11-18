@@ -2,7 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const router = express.Router();
-const { login, register ,logout} = require('../controllers/userController');
+const { login, register ,logout, validateToken} = require('../controllers/userController');
 // const cookieParser = require('cookie-parser');
 // router.use(cookieParser());
 
@@ -10,6 +10,8 @@ const { login, register ,logout} = require('../controllers/userController');
 router.post('/register', register);
 router.post('/login', login);
 router.post('/logout', logout);
+router.get('/validate-token', validateToken);
+
 
 module.exports = router;
 

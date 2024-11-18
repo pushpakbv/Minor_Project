@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import axios from '../utils/axios';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext'; // Adjust path as needed
+import axios from '../utils/axios'
 
 const Login = () => {
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -13,7 +15,7 @@ const Login = () => {
     try {
       setError('');
       const response = await axios.post('/auth/login', { email, password });
-      localStorage.setItem('token', response.data.token);
+      login(response.data.token); // Use context's login method
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed');

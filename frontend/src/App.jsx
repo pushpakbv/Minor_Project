@@ -5,44 +5,39 @@ import Feed from './pages/Feed';
 import CreatePost from './pages/CreatePost';
 import Home from './pages/Home';
 import Header from './components/Header';
-import PrivateRoute from './components/PrivateRoute';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
   return (
     <Router>
-      <div className="app">
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <>
-                <Header />
-                <Home />
-              </>
-            }
-          />
-          <Route
-            path="/feed"
-            element={
-              <>
-                <Header />
-                <Feed />
-              </>
-            }
-          />
-          <Route
-            path="/create-post"
-            element={
-              <>
-                <Header />
-                <CreatePost />
-              </>
-            }
-          />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-        </Routes>
-      </div>
+      <Routes>
+        <Route path="/Login" element={<Login />} />
+        <Route path="/Signup" element={<Signup />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Header />
+              <Home/>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-post"
+          element={
+            <ProtectedRoute>
+              <Header />
+              <CreatePost/>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* <Route path="/signup" element={<Signup />} />
+        <Route path="/feed" element={<Feed />} />
+        <Route path="/create-post" element={<CreatePost />} /> */}
+
+
+      </Routes>
     </Router>
   );
 };
