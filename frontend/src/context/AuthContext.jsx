@@ -1,36 +1,39 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from '../utils/axios';
-import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const validateToken = async () => {
-      const token = localStorage.getItem('token');
-      
-      if (token) {
-        try {
-          // Add a backend endpoint to validate the token
-          const response = await axios.get('/auth/validate-token', {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-
-          if (response.data.valid) {
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            setIsAuthenticated(true);
-          } else {
-            logout(); // Token is invalid
-          }
-        } catch (error) {
-          logout(); // Token validation failed
-        } finally {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
           setIsLoading(false);
+          return;
         }
-      } else {
+
+        const response = await axios.get('/auth/validate-token', {
+          withCredentials: true
+        });
+
+        if (response.data.valid) {
+          setIsAuthenticated(true);
+          setUser(response.data.user);
+        } else {
+          localStorage.removeItem('token');
+          setIsAuthenticated(false);
+          setUser(null);
+        }
+      } catch (error) {
+        localStorage.removeItem('token');
+        setIsAuthenticated(false);
+        setUser(null);
+      } finally {
         setIsLoading(false);
       }
     };
@@ -38,16 +41,31 @@ export const AuthProvider = ({ children }) => {
     validateToken();
   }, []);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      const timeout = setTimeout(() => {
+        logout();
+        alert('Your session has expired. Please login again.');
+      }, 24 * 60 * 60 * 1000); // 24 hours
+
+      return () => clearTimeout(timeout);
+    }
+  }, [isAuthenticated]);
+
   const login = (token) => {
     localStorage.setItem('token', token);
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     setIsAuthenticated(true);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await axios.post('/auth/logout', {}, { withCredentials: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
     localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization'];
     setIsAuthenticated(false);
+    setUser(null);
   };
 
   return (
@@ -55,7 +73,8 @@ export const AuthProvider = ({ children }) => {
       isAuthenticated, 
       login, 
       logout, 
-      isLoading 
+      isLoading,
+      user 
     }}>
       {children}
     </AuthContext.Provider>

@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// Define base URL directly - environment variables are already loaded in React/Vite apps
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const instance = axios.create({
@@ -11,7 +10,6 @@ const instance = axios.create({
   }
 });
 
-// Request interceptor
 instance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -25,20 +23,13 @@ instance.interceptors.request.use(
   }
 );
 
-// Response interceptor
 instance.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   async (error) => {
-    const originalRequest = error.config;
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      localStorage.clear();
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
       window.location.href = '/login';
     }
-
     return Promise.reject(error);
   }
 );

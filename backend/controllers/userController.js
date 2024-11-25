@@ -35,13 +35,15 @@ exports.login = async (req, res) => {
     // Set HTTP-only cookie
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-      sameSite: 'strict', // Protect against CSRF
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      path: '/' // Make cookie available for all paths
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000,
+      path: '/'
     });
 
+    // Also send token in response for localStorage
     res.status(200).json({ 
+      token,
       user: { 
         username: user.username, 
         email: user.email 
@@ -63,27 +65,25 @@ exports.logout =  (req, res) => {
 
 
 exports.validateToken = async (req, res) => {
-    try {
-      const token = req.headers.authorization?.split(' ')[1];
-  
-      if (!token) {
-        return res.status(401).json({ valid: false });
-      }
-  
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
-      // Optional: Check user exists or has active status
-      const user = await User.findById(decoded.userId);
-      
-      if (!user) {
-        return res.status(401).json({ valid: false });
-      }
-  
-      res.json({ valid: true });
-    } catch (error) {
-      res.status(401).json({ valid: false });
+  try {
+    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ valid: false });
     }
-  };
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    
+    if (!user) {
+      return res.status(401).json({ valid: false });
+    }
+
+    res.json({ valid: true, user: { username: user.username, email: user.email } });
+  } catch (error) {
+    res.status(401).json({ valid: false });
+  }
+};
 // exports.logout = (req, res) => {
 //   try {
 //     // Clear the auth cookie

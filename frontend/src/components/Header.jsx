@@ -1,9 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Header = () => {
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { isAuthenticated, logout } = useAuth();
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    await logout();
+    setIsLoggingOut(false);
+  };
 
   return (
     <header className="bg-blue-600 text-white py-4 shadow-md">
@@ -24,9 +31,10 @@ const Header = () => {
               </Link>
               <button
                 className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
-                onClick={logout}
+                onClick={handleLogout}
+                disabled={isLoggingOut}
               >
-                Logout
+                {isLoggingOut ? 'Logging out...' : 'Logout'}
               </button>
             </>
           ) : (
