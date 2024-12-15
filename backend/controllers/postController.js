@@ -55,6 +55,8 @@ exports.getPosts = async (req, res) => {
             .populate('comments.userId', 'username profileImage')
             .populate('likes', 'username');
             
+        const currentUserId = req.user ? req.user.id : null;
+        
         const formattedPosts = posts.map(post => ({
             ...post.toJSON(),
             user: {
@@ -62,6 +64,7 @@ exports.getPosts = async (req, res) => {
                 username: post.userId.username,
                 profileImage: post.userId.profileImage || '/default-avatar.png'
             },
+            isLiked: currentUserId ? post.likes.some(like => like._id.toString() === currentUserId) : false,
             comments: post.comments.map(comment => ({
                 ...comment.toJSON(),
                 user: {
@@ -83,27 +86,38 @@ exports.likePost = async (req, res) => {
     try {
         const { postId } = req.params;
         const userId = req.user.id;
-    
+
         const post = await Post.findById(postId);
-        if (!post) return res.status(404).json({ error: 'Post not found' });
-    
+        if (!post) {
+            return res.status(404).json({ 
+                success: false,
+                error: 'Post not found' 
+            });
+        }
+
         const likeIndex = post.likes.indexOf(userId);
-        if (likeIndex === -1) {
+        const wasLiked = likeIndex !== -1;
+
+        if (!wasLiked) {
             post.likes.push(userId);
         } else {
             post.likes.splice(likeIndex, 1);
         }
-    
+
         await post.save();
         
-        res.status(200).json({ 
-            message: 'Post updated successfully', 
+        return res.status(200).json({ 
+            success: true,
+            message: wasLiked ? 'Post unliked' : 'Post liked',
             likes: post.likes.length,
-            isLiked: likeIndex === -1
+            isLiked: !wasLiked
         });
     } catch (error) {
         console.error('Like error:', error);
-        res.status(500).json({ error: 'Error liking/unliking post' });
+        return res.status(500).json({ 
+            success: false,
+            error: 'Error processing like/unlike action'
+        });
     }
 };
 
@@ -159,5 +173,3 @@ exports.getComments = async (req, res) => {
         res.status(500).json({ error: 'Error fetching comments' });
       }
 };
-
-

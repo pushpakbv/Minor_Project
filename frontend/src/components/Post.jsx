@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from '../utils/axios';
 import { Link } from 'react-router-dom';
 import { getFullImageUrl } from '../utils/imageUtils';
@@ -12,17 +12,43 @@ const Post = ({ post }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { user: currentUser } = useAuth();
 
+  // Update state when post data changes
+  useEffect(() => {
+    setLikes(post.likes?.length || 0);
+    setIsLiked(post.isLiked || false);
+  }, [post.likes, post.isLiked]);
+
   const handleLike = async (postId) => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No auth token found');
+        return;
+      }
+
+      // Optimistically update UI
+      const prevLikes = likes;
+      const prevIsLiked = isLiked;
+      setIsLiked(!isLiked);
+      setLikes(isLiked ? likes - 1 : likes + 1);
+
       const response = await axios.post(`/posts/${postId}/like`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      setLikes(response.data.likes);
-      setIsLiked(!isLiked);
+      if (response.data && response.data.success) {
+        setLikes(response.data.likes);
+        setIsLiked(response.data.isLiked);
+      } else {
+        // Revert on failure
+        setLikes(prevLikes);
+        setIsLiked(prevIsLiked);
+      }
     } catch (error) {
       console.error('Error liking post:', error);
+      // Revert the like state if the request fails
+      setLikes(prevLikes);
+      setIsLiked(prevIsLiked);
     }
   };
 
@@ -103,7 +129,9 @@ const Post = ({ post }) => {
       {/* Like section */}
       <div className="flex items-center space-x-4 mb-4 border-t border-b border-gray-100 py-2">
         <button 
-          className={`flex items-center space-x-1 ${isLiked ? 'text-blue-500' : 'text-gray-500'} hover:text-blue-600 transition-colors`}
+          className={`flex items-center space-x-1 ${
+            isLiked ? 'text-blue-500 hover:text-blue-600' : 'text-gray-500 hover:text-blue-600'
+          } transition-colors`}
           onClick={() => handleLike(post._id)}
         >
           <svg 
@@ -120,7 +148,7 @@ const Post = ({ post }) => {
               d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
             />
           </svg>
-          <span>{likes}</span>
+          <span className={isLiked ? 'text-blue-500' : 'text-gray-500'}>{likes}</span>
         </button>
       </div>
 

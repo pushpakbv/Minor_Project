@@ -5,13 +5,19 @@ import Post from './Post';
 const PostList = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const fetchPosts = async () => {
     try {
-      const response = await axios.get('/posts');
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/posts', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setPosts(response.data.posts);
+      setError(null);
     } catch (error) {
       console.error('Error fetching posts:', error);
+      setError('Failed to load posts. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -21,7 +27,21 @@ const PostList = () => {
     fetchPosts();
   }, []);
 
-  if (loading) return <div>Loading posts...</div>;
+  if (loading) {
+    return (
+      <div className="text-center py-8 text-gray-600">
+        Loading posts...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8 text-red-500">
+        {error}
+      </div>
+    );
+  }
 
   return (
     <div className="post-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

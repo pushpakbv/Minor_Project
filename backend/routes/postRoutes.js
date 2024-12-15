@@ -61,7 +61,7 @@ const upload = multer({
 // });
 
 router.post('/create', authenticate, upload.single('media'), createPost);
-router.get('/', getPosts);
+router.get('/', authenticate, getPosts);
 router.post('/:postId/like', authenticate, likePost);
 router.post('/:postId/comment', authenticate, commentPost);
 router.get('/:postId/comments', getComments);
@@ -145,4 +145,3 @@ module.exports = router;
 // });
 
 module.exports = router;
-
