@@ -10,12 +10,6 @@ const HeroSection = () => {
         <p className="text-xl mb-8">
           Dive into the latest updates and discover trending posts!
         </p>
-        <a
-          href="#"
-          className="bg-white text-blue-500 px-6 py-3 rounded-full font-semibold shadow-lg transform transition-transform duration-300 hover:scale-105"
-        >
-          Explore Posts
-        </a>
       </div>
     </div>
   );

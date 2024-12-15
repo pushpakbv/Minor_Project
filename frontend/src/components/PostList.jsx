@@ -44,9 +44,9 @@ const PostList = () => {
   }
 
   return (
-    <div className="post-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       {posts.length === 0 ? (
-        <div className="text-center text-gray-500">No posts to display.</div>
+        <div className="text-center text-gray-500 dark:text-gray-400">No posts to display.</div>
       ) : (
         posts.map((post) => (
           <Post key={post._id} post={post} />

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import axios from '../utils/axios';
 
 const Signup = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { isDarkMode } = useTheme();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -52,22 +54,22 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-600 to-blue-500 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-2xl p-8 space-y-8">
+    <div className={`min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 ${isDarkMode ? 'bg-[#1a1a1b]' : 'bg-blue-50'}`}>
+      <div className={`max-w-md w-full rounded-lg shadow-md p-8 space-y-6 ${isDarkMode ? 'bg-[#272729]' : 'bg-white'}`}>
         <div>
           <img
             className="mx-auto h-12 w-auto rounded-full"
             src="/logo.jpeg"
             alt="Logo"
           />
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className={`mt-6 text-center text-3xl font-bold ${isDarkMode ? 'text-[#d7dadc]' : 'text-gray-900'}`}>
             Create your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className={`mt-2 text-center text-sm ${isDarkMode ? 'text-[#d7dadc]' : 'text-gray-600'}`}>
             Already have an account?{' '}
             <Link
               to="/login"
-              className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-300"
+              className="font-medium text-[#0079d3] hover:text-[#006cbd] transition-colors duration-300"
             >
               Sign in
             </Link>
@@ -75,15 +77,15 @@ const Signup = () => {
         </div>
 
         {error && (
-          <div className="bg-red-50 text-red-500 p-4 rounded-md text-sm">
+          <div className="bg-red-500 text-white p-3 rounded-md text-sm">
             {error}
           </div>
         )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm space-y-4">
+          <div className="space-y-4">
             <div>
-              <label htmlFor="username" className="sr-only">
+              <label htmlFor="username" className={`block text-sm font-medium ${isDarkMode ? 'text-[#d7dadc]' : 'text-gray-700'}`}>
                 Username
               </label>
               <input
@@ -93,12 +95,16 @@ const Signup = () => {
                 required
                 value={formData.username}
                 onChange={handleChange}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-all duration-300"
-                placeholder="Username"
+                className={`mt-1 block w-full px-3 py-2 border rounded-md placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0079d3] focus:border-transparent ${
+                  isDarkMode 
+                    ? 'bg-[#1a1a1b] border-[#343536] text-[#d7dadc]' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
+                placeholder="Enter your username"
               />
             </div>
             <div>
-              <label htmlFor="email" className="sr-only">
+              <label htmlFor="email" className={`block text-sm font-medium ${isDarkMode ? 'text-[#d7dadc]' : 'text-gray-700'}`}>
                 Email address
               </label>
               <input
@@ -109,12 +115,16 @@ const Signup = () => {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-all duration-300"
-                placeholder="Email address"
+                className={`mt-1 block w-full px-3 py-2 border rounded-md placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0079d3] focus:border-transparent ${
+                  isDarkMode 
+                    ? 'bg-[#1a1a1b] border-[#343536] text-[#d7dadc]' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
+                placeholder="Enter your email"
               />
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">
+              <label htmlFor="password" className={`block text-sm font-medium ${isDarkMode ? 'text-[#d7dadc]' : 'text-gray-700'}`}>
                 Password
               </label>
               <input
@@ -125,12 +135,16 @@ const Signup = () => {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-all duration-300"
-                placeholder="Password"
+                className={`mt-1 block w-full px-3 py-2 border rounded-md placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0079d3] focus:border-transparent ${
+                  isDarkMode 
+                    ? 'bg-[#1a1a1b] border-[#343536] text-[#d7dadc]' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
+                placeholder="Enter your password"
               />
             </div>
             <div>
-              <label htmlFor="confirmPassword" className="sr-only">
+              <label htmlFor="confirmPassword" className={`block text-sm font-medium ${isDarkMode ? 'text-[#d7dadc]' : 'text-gray-700'}`}>
                 Confirm Password
               </label>
               <input
@@ -141,8 +155,12 @@ const Signup = () => {
                 required
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-all duration-300"
-                placeholder="Confirm Password"
+                className={`mt-1 block w-full px-3 py-2 border rounded-md placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0079d3] focus:border-transparent ${
+                  isDarkMode 
+                    ? 'bg-[#1a1a1b] border-[#343536] text-[#d7dadc]' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
+                placeholder="Confirm your password"
               />
             </div>
           </div>
@@ -151,7 +169,7 @@ const Signup = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 disabled:opacity-50"
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#0079d3] hover:bg-[#006cbd] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0079d3] disabled:opacity-50"
             >
               {isLoading ? (
                 <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
@@ -170,9 +188,7 @@ const Signup = () => {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-              ) : (
-                'Create Account'
-              )}
+              ) : 'Create Account'}
             </button>
           </div>
         </form>

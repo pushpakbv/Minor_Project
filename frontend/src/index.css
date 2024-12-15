@@ -3,16 +3,19 @@
 @tailwind utilities;
 
 :root {
-  --primary: #2563eb;
-  --primary-dark: #1d4ed8;
-  --secondary: #0ea5e9;
-  --secondary-dark: #0284c7;
-  --background-light: #f8fafc;
-  --background-dark: #1e293b;
+  --primary: #ff4500;
+  --primary-dark: #e03d00;
+  --secondary: #0079d3;
+  --secondary-dark: #006cbd;
+  --background-light: #ffffff;
+  --background-dark: #1a1a1b;
   --card-light: #ffffff;
-  --card-dark: #334155;
-  --text-light: #1e293b;
-  --text-dark: #f8fafc;
+  --card-dark: #272729;
+  --text-light: #1a1a1b;
+  --text-dark: #d7dadc;
+  --border-dark: #343536;
+  --input-dark: #272729;
+  --button-dark: #d7dadc;
 }
 
 /* Light mode styles */
@@ -37,7 +40,7 @@
 }
 
 .dark-mode .text-gray-600 {
-  color: #cbd5e1;
+  color: #818384;
 }
 
 .dark-mode .bg-gray-100 {
@@ -45,19 +48,24 @@
 }
 
 .dark-mode .bg-gray-50 {
-  background-color: #2c3e50;
+  background-color: var(--card-dark);
 }
 
 .dark-mode input,
+.dark-mode select,
 .dark-mode textarea {
-  background-color: var(--card-dark);
+  background-color: var(--input-dark);
+  border-color: var(--border-dark);
   color: var(--text-dark);
-  border-color: #475569;
 }
 
-.dark-mode input::placeholder,
-.dark-mode textarea::placeholder {
-  color: #94a3b8;
+.dark-mode button {
+  background-color: var(--button-dark);
+  color: var(--background-dark);
+}
+
+.dark-mode button:hover {
+  opacity: 0.9;
 }
 
 /* Common styles */

@@ -3,6 +3,7 @@ import axios from '../utils/axios';
 import { Link } from 'react-router-dom';
 import { getFullImageUrl } from '../utils/imageUtils';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 const Post = ({ post }) => {
   const [likes, setLikes] = useState(post.likes?.length || 0);
@@ -10,7 +11,9 @@ const Post = ({ post }) => {
   const [comments, setComments] = useState(post.comments || []);
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { user: currentUser } = useAuth();
+  const [likeLoading, setLikeLoading] = useState(false);
+  const { user: currentUser, isAuthenticated } = useAuth();
+  const { isDarkMode } = useTheme();
 
   // Update state when post data changes
   useEffect(() => {
@@ -19,7 +22,14 @@ const Post = ({ post }) => {
   }, [post.likes, post.isLiked]);
 
   const handleLike = async (postId) => {
+    if (!isAuthenticated) {
+      // Show a toast or alert that user needs to login
+      console.log('Please login to like posts');
+      return;
+    }
+
     try {
+      setLikeLoading(true);
       const token = localStorage.getItem('token');
       if (!token) {
         console.error('No auth token found');
@@ -49,6 +59,8 @@ const Post = ({ post }) => {
       // Revert the like state if the request fails
       setLikes(prevLikes);
       setIsLiked(prevIsLiked);
+    } finally {
+      setLikeLoading(false);
     }
   };
 
@@ -74,7 +86,7 @@ const Post = ({ post }) => {
   const isVideo = post.media?.match(/\.(mp4|webm|ogg)$/i);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 mb-4">
+    <div className={`rounded-lg shadow-md p-4 mb-4 ${isDarkMode ? 'bg-[#1a1a1b]' : 'bg-white'}`}>
       {/* User info section */}
       <div className="flex items-center mb-4">
         <Link to={`/profile/${post.user._id}`} className="flex items-center hover:opacity-90 transition-opacity">
@@ -87,10 +99,10 @@ const Post = ({ post }) => {
             }}
           />
           <div>
-            <h3 className="font-semibold text-gray-900 hover:text-blue-600 transition-colors">
+            <h3 className={`font-semibold hover:text-blue-600 transition-colors ${isDarkMode ? 'text-[#d7dadc]' : 'text-gray-900'}`}>
               {post.user.username}
             </h3>
-            <p className="text-sm text-gray-500">
+            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
               {new Date(post.createdAt).toLocaleDateString()} at {new Date(post.createdAt).toLocaleTimeString()}
             </p>
           </div>
@@ -98,7 +110,7 @@ const Post = ({ post }) => {
       </div>
       
       {/* Post content */}
-      <p className="mb-4 text-gray-800">{post.text}</p>
+      <p className={`mb-4 ${isDarkMode ? 'text-[#d7dadc]' : 'text-gray-800'}`}>{post.text}</p>
 
       {/* Media content */}
       {post.media && (
@@ -127,35 +139,35 @@ const Post = ({ post }) => {
       )}
 
       {/* Like section */}
-      <div className="flex items-center space-x-4 mb-4 border-t border-b border-gray-100 py-2">
-        <button 
-          className={`flex items-center space-x-1 ${
-            isLiked ? 'text-blue-500 hover:text-blue-600' : 'text-gray-500 hover:text-blue-600'
-          } transition-colors`}
-          onClick={() => handleLike(post._id)}
+      <div className="flex items-center space-x-4 mb-4 py-2">
+        <div 
+          className={`flex items-center space-x-1 cursor-pointer ${
+            isLiked ? 'text-blue-500' : isDarkMode ? 'text-white' : 'text-gray-500'
+          } hover:text-blue-500 transition-colors ${!isAuthenticated ? 'opacity-50 cursor-not-allowed' : ''}`}
+          onClick={!isAuthenticated || likeLoading ? undefined : () => handleLike(post._id)}
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
-            className="h-5 w-5" 
-            fill={isLiked ? "currentColor" : "none"} 
+            className="h-5 w-5"
+            fill={isLiked ? "currentColor" : "none"}
             viewBox="0 0 24 24" 
             stroke="currentColor"
+            strokeWidth="1.5"
           >
             <path 
               strokeLinecap="round" 
               strokeLinejoin="round" 
-              strokeWidth={2} 
               d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
             />
           </svg>
-          <span className={isLiked ? 'text-blue-500' : 'text-gray-500'}>{likes}</span>
-        </button>
+          <span>{likes}</span>
+        </div>
       </div>
 
       {/* Comments section */}
       <div className="space-y-4">
         {comments.map((comment, index) => (
-          <div key={index} className="flex space-x-3 bg-gray-50 p-3 rounded-lg">
+          <div key={index} className={`flex space-x-3 p-3 rounded-lg ${isDarkMode ? 'bg-[#272729]' : 'bg-gray-50'}`}>
             <Link to={`/profile/${comment.user?._id}`} className="flex-shrink-0">
               <img
                 src={getFullImageUrl(comment.user?.profileImage)}
@@ -167,11 +179,11 @@ const Post = ({ post }) => {
               />
             </Link>
             <div className="flex-1 min-w-0">
-              <Link to={`/profile/${comment.user?._id}`} className="font-medium text-gray-900 hover:text-blue-600 transition-colors">
+              <Link to={`/profile/${comment.user?._id}`} className={`font-medium hover:text-blue-600 transition-colors ${isDarkMode ? 'text-[#d7dadc]' : 'text-gray-900'}`}>
                 {comment.user?.username}
               </Link>
-              <p className="text-gray-700 mt-1">{comment.comment}</p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className={`mt-1 ${isDarkMode ? 'text-[#d7dadc]' : 'text-gray-700'}`}>{comment.comment}</p>
+              <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 {new Date(comment.createdAt).toLocaleDateString()} at {new Date(comment.createdAt).toLocaleTimeString()}
               </p>
             </div>
@@ -195,7 +207,7 @@ const Post = ({ post }) => {
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Write a comment..."
-              className="w-full border border-gray-200 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+              className={`w-full border border-gray-200 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none ${isDarkMode ? 'bg-[#272729] text-[#d7dadc]' : 'bg-white text-gray-800'}`}
               rows="2"
             />
             <div className="mt-2 flex justify-end">
