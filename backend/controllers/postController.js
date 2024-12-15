@@ -7,16 +7,8 @@ exports.createPost = async (req, res) => {
         
         let mediaUrl = null;
         if (req.file) {
-            // Get file extension
-            const ext = path.extname(req.file.originalname).toLowerCase();
-            const isVideo = ['.mp4', '.webm', '.ogg'].includes(ext);
-            
-            mediaUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-            
-            // Add proper content type for videos
-            if (isVideo) {
-                req.file.contentType = `video/${ext.substring(1)}`;
-            }
+            // Cloudinary automatically uploads the file and provides the URL
+            mediaUrl = req.file.path;
         }
     
         const newPost = new Post({

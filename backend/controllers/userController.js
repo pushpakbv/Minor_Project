@@ -126,15 +126,8 @@ exports.updateProfile = async (req, res) => {
     }
 
     if (req.file) {
-      updates.profileImage = `/uploads/profiles/${req.file.filename}`;
-      
-      // Delete old profile image if it exists
-      const currentUser = await User.findById(req.user.id);
-      if (currentUser.profileImage && 
-          currentUser.profileImage !== '/default-avatar.png' && 
-          fs.existsSync(path.join(__dirname, '..', 'public', currentUser.profileImage))) {
-        await fs.unlink(path.join(__dirname, '..', 'public', currentUser.profileImage));
-      }
+      // Cloudinary automatically uploads and provides the URL
+      updates.profileImage = req.file.path;
     }
 
     const updatedUser = await User.findByIdAndUpdate(

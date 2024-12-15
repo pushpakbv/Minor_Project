@@ -1,15 +1,15 @@
 const multer = require('multer');
 const path = require('path');
+const cloudinary = require('../config/cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-// Configure storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/profiles/');
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, `profile-${uniqueSuffix}${ext}`);
+// Configure Cloudinary storage
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'profiles', // for profile images
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+    transformation: [{ width: 500, height: 500, crop: 'limit' }] // resize images
   }
 });
 
@@ -33,4 +33,4 @@ const upload = multer({
   }
 });
 
-module.exports = upload; 
+module.exports = upload;

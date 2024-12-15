@@ -11,6 +11,15 @@ const instance = axios.create({
 // Add request interceptor for token handling
 instance.interceptors.request.use(
   (config) => {
+    // Debug log for requests
+    console.log('🚀 Request:', {
+      url: config.url,
+      method: config.method,
+      baseURL: config.baseURL,
+      headers: config.headers,
+      data: config.data
+    });
+    
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -18,15 +27,38 @@ instance.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error('Request error:', error);
+    console.error('❌ Request error:', error);
     return Promise.reject(error);
   }
 );
 
 // Add response interceptor for error handling
 instance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Debug log for successful responses
+    console.log('✅ Response:', {
+      status: response.status,
+      data: response.data,
+      headers: response.headers
+    });
+    return response;
+  },
   (error) => {
+    // Debug log for error responses
+    console.error('❌ Response error:', {
+      message: error.message,
+      response: error.response ? {
+        status: error.response.status,
+        data: error.response.data,
+        headers: error.response.headers
+      } : 'No response',
+      config: error.config ? {
+        url: error.config.url,
+        method: error.config.method,
+        baseURL: error.config.baseURL,
+        headers: error.config.headers
+      } : 'No config'
+    });
     if (error.response?.status === 401) {
       // Handle unauthorized access
       localStorage.removeItem('token');

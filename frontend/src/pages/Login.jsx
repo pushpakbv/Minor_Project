@@ -27,9 +27,14 @@ const Login = () => {
     setIsLoading(true);
     setError('');
 
+    console.log('🔑 Login attempt:', {
+      email: formData.email,
+      apiUrl: import.meta.env.VITE_API_URL
+    });
+
     try {
       const response = await axios.post('auth/login', formData);
-      console.log('Login response:', response.data);
+      console.log('✅ Login successful:', response.data);
       if (response.data.token && response.data.user) {
         login(response.data.token, response.data.user);
         navigate('/');
@@ -37,8 +42,12 @@ const Login = () => {
         setError('Invalid response from server');
       }
     } catch (err) {
-      console.error('Login error:', err);
-      setError(err.response?.data?.error || 'Failed to login');
+      console.error('❌ Login error:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status
+      });
+      setError(err.response?.data?.message || 'An error occurred during login');
     } finally {
       setIsLoading(false);
     }
