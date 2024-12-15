@@ -4,7 +4,7 @@ import Post from './Post';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-const PostList = () => {
+const PostList = ({ sortBy = 'latest' }) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,7 +20,30 @@ const PostList = () => {
     const fetchPosts = async () => {
       try {
         const response = await axios.get('/posts');
-        setPosts(response.data.posts || response.data || []);
+        let fetchedPosts = response.data.posts || response.data || [];
+        
+        // Apply sorting
+        if (sortBy === 'trending') {
+          // Sort posts by number of likes for trending
+          fetchedPosts.sort((a, b) => {
+            const likesA = Array.isArray(a.likes) ? a.likes.length : 0;
+            const likesB = Array.isArray(b.likes) ? b.likes.length : 0;
+            return likesB - likesA;
+          });
+        } else if (sortBy === 'random') {
+          // Fisher-Yates shuffle algorithm for random sorting
+          for (let i = fetchedPosts.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [fetchedPosts[i], fetchedPosts[j]] = [fetchedPosts[j], fetchedPosts[i]];
+          }
+        } else {
+          // Default 'latest' sorting
+          fetchedPosts.sort((a, b) => 
+            new Date(b.createdAt) - new Date(a.createdAt)
+          );
+        }
+        
+        setPosts(fetchedPosts);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching posts:', err);
@@ -34,7 +57,7 @@ const PostList = () => {
     };
 
     fetchPosts();
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, sortBy]);
 
   if (!isAuthenticated) {
     return null;
@@ -63,8 +86,12 @@ const PostList = () => {
           <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
           </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No posts</h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating a new post.</p>
+          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+            No posts found
+          </h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Check back later for new posts
+          </p>
         </div>
       </div>
     );

@@ -21,9 +21,9 @@ const Sidebar = () => {
       label: 'Home'
     },
     {
-      to: '/popular',
+      to: '/trending',
       icon: AiFillFire,
-      label: 'Popular'
+      label: 'Trending'
     },
     {
       to: '/explore',

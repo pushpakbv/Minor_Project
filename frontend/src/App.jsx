@@ -1,17 +1,18 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import { ThemeProvider, useTheme } from './context/ThemeContext';
-import Header from './components/Header';
-import Sidebar from './components/Sidebar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Trending from './pages/Trending';
+import Explore from './pages/Explore';
+import YourPosts from './pages/YourPosts';
+import Sidebar from './components/Sidebar';
+import Header from './components/Header';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
 import Profile from './pages/Profile';
 import CreatePost from './pages/CreatePost';
 import Popular from './pages/Popular';
-import Explore from './pages/Explore';
-import YourPosts from './pages/YourPosts';
 import ProtectedRoute from './components/ProtectedRoute';
 import './index.css';
 
@@ -53,6 +54,7 @@ const AppContent = () => {
               }
             />
             <Route path="/popular" element={<Popular />} />
+            <Route path="/trending" element={<Trending />} />
             <Route path="/explore" element={<Explore />} />
             <Route 
               path="/your-posts" 
