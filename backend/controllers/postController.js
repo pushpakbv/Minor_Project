@@ -1,35 +1,82 @@
 const Post = require('../models/Post');
+const path = require('path');
 
 exports.createPost = async (req, res) => {
     try {
         const { text } = req.body;
         
-        // Create the full URL for the media file
-        const mediaUrl = req.file 
-          ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
-          : null;
+        let mediaUrl = null;
+        if (req.file) {
+            // Get file extension
+            const ext = path.extname(req.file.originalname).toLowerCase();
+            const isVideo = ['.mp4', '.webm', '.ogg'].includes(ext);
+            
+            mediaUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+            
+            // Add proper content type for videos
+            if (isVideo) {
+                req.file.contentType = `video/${ext.substring(1)}`;
+            }
+        }
     
         const newPost = new Post({
-          userId: req.user.id,
-          text,
-          media: mediaUrl,
+            userId: req.user.id,
+            text,
+            media: mediaUrl,
         });
     
         await newPost.save();
-        res.status(201).json({ message: 'Post created successfully', post: newPost });
-      } catch (error) {
+        await newPost.populate('userId', 'username profileImage');
+        
+        const formattedPost = {
+            ...newPost.toJSON(),
+            user: {
+                id: newPost.userId._id,
+                username: newPost.userId.username,
+                profileImage: newPost.userId.profileImage || '/default-avatar.png'
+            }
+        };
+
+        res.status(201).json({ 
+            message: 'Post created successfully', 
+            post: formattedPost 
+        });
+    } catch (error) {
         console.error('Post creation error:', error);
         res.status(500).json({ error: 'Failed to create post' });
-      }
+    }
 };
 
 exports.getPosts = async (req, res) => {
     try {
-        const posts = await Post.find().sort({ createdAt: -1 });
-        res.status(200).json({ posts });
-      } catch (error) {
+        const posts = await Post.find()
+            .sort({ createdAt: -1 })
+            .populate('userId', 'username profileImage')
+            .populate('comments.userId', 'username profileImage')
+            .populate('likes', 'username');
+            
+        const formattedPosts = posts.map(post => ({
+            ...post.toJSON(),
+            user: {
+                id: post.userId._id,
+                username: post.userId.username,
+                profileImage: post.userId.profileImage || '/default-avatar.png'
+            },
+            comments: post.comments.map(comment => ({
+                ...comment.toJSON(),
+                user: {
+                    id: comment.userId._id,
+                    username: comment.userId.username,
+                    profileImage: comment.userId.profileImage || '/default-avatar.png'
+                }
+            }))
+        }));
+
+        res.status(200).json({ posts: formattedPosts });
+    } catch (error) {
+        console.error('Error fetching posts:', error);
         res.status(500).json({ error: 'Error fetching posts' });
-      }
+    }
 };
 
 exports.likePost = async (req, res) => {
@@ -38,43 +85,65 @@ exports.likePost = async (req, res) => {
         const userId = req.user.id;
     
         const post = await Post.findById(postId);
-        if (!post) return res.status(404).json({ message: 'Post not found' });
+        if (!post) return res.status(404).json({ error: 'Post not found' });
     
-        // Toggle like
-        if (post.likes.includes(userId)) {
-          post.likes = post.likes.filter((id) => id.toString() !== userId);
+        const likeIndex = post.likes.indexOf(userId);
+        if (likeIndex === -1) {
+            post.likes.push(userId);
         } else {
-          post.likes.push(userId);
+            post.likes.splice(likeIndex, 1);
         }
     
         await post.save();
-        res.status(200).json({ message: 'Post updated successfully', likes: post.likes.length });
-      } catch (error) {
+        
+        res.status(200).json({ 
+            message: 'Post updated successfully', 
+            likes: post.likes.length,
+            isLiked: likeIndex === -1
+        });
+    } catch (error) {
+        console.error('Like error:', error);
         res.status(500).json({ error: 'Error liking/unliking post' });
-      }
+    }
 };
 
 exports.commentPost = async (req, res) => {
     try {
         const { postId } = req.params;
         const { comment } = req.body;
-    
+
         const post = await Post.findById(postId);
         if (!post) return res.status(404).json({ message: 'Post not found' });
-    
+
         const newComment = {
-          userId: req.user.id,
-          comment,
-          createdAt: new Date(),
+            userId: req.user.id,
+            comment,
+            createdAt: new Date(),
         };
-    
+
         post.comments.push(newComment);
         await post.save();
-    
-        res.status(201).json({ message: 'Comment added successfully', comments: post.comments });
-      } catch (error) {
+        
+        // Populate the new comment's user details
+        await post.populate('comments.userId', 'username profileImage');
+        
+        const formattedComment = {
+            ...post.comments[post.comments.length - 1].toJSON(),
+            user: {
+                id: req.user.id,
+                username: post.comments[post.comments.length - 1].userId.username,
+                profileImage: post.comments[post.comments.length - 1].userId.profileImage || '/default-avatar.png'
+            }
+        };
+
+        res.status(201).json({ 
+            message: 'Comment added successfully', 
+            comment: formattedComment 
+        });
+    } catch (error) {
+        console.error('Comment error:', error);
         res.status(500).json({ error: 'Error adding comment' });
-      }
+    }
 };
     
 

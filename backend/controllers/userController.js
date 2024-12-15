@@ -1,5 +1,9 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const mongoose = require('mongoose');
+const Post = require('../models/Post');
+const fs = require('fs-extra');
+const path = require('path');
 
 
 exports.register = async (req, res) => {
@@ -20,37 +24,34 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
   try {
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) return res.status(400).json({ message: 'Invalid credentials' });
+    const isPasswordValid = await user.comparePassword(req.body.password);
+    if (!isPasswordValid) return res.status(400).json({ error: 'Invalid credentials' });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { 
-      expiresIn: '1d' 
-    });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
-    // Set HTTP-only cookie
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000,
-      path: '/'
+      maxAge: 24 * 60 * 60 * 1000
     });
 
-    // Also send token in response for localStorage
-    res.status(200).json({ 
+    res.status(200).json({
       token,
-      user: { 
-        username: user.username, 
-        email: user.email 
+      user: {
+        id: user._id.toString(),
+        username: user.username,
+        email: user.email,
+        profileImage: user.profileImage || '/default-avatar.png'
       }
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Login failed' });
   }
 };
 
@@ -84,19 +85,68 @@ exports.validateToken = async (req, res) => {
     res.status(401).json({ valid: false });
   }
 };
-// exports.logout = (req, res) => {
-//   try {
-//     // Clear the auth cookie
-//     res.cookie('token', '', {
-//       httpOnly: true,
-//       secure: process.env.NODE_ENV === 'production',
-//       sameSite: 'strict',
-//       expires: new Date(0), // Immediate expiration
-//       path: '/'
-//     });
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const updates = {};
     
-//     res.status(200).json({ message: 'Logged out successfully' });
-//   } catch (error) {
-//     res.status(500).json({ error: 'Logout failed' });
-//   }
-// };
+    if (req.body.bio !== undefined) {
+      updates.bio = req.body.bio;
+    }
+
+    if (req.file) {
+      updates.profileImage = `/uploads/profiles/${req.file.filename}`;
+      
+      // Delete old profile image if it exists
+      const currentUser = await User.findById(req.user.id);
+      if (currentUser.profileImage && 
+          currentUser.profileImage !== '/default-avatar.png' && 
+          fs.existsSync(path.join(__dirname, '..', 'public', currentUser.profileImage))) {
+        await fs.unlink(path.join(__dirname, '..', 'public', currentUser.profileImage));
+      }
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: updates },
+      { new: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Error updating profile' });
+  }
+};
+
+exports.getProfile = async (req, res) => {
+  try {
+    // Check if we have either a valid userId parameter or a valid user in the request
+    const userId = req.params.userId || req.user?.id;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    const user = await User.findById(userId).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Get profile error:', error);
+    
+    // Handle specific mongoose CastError for invalid ObjectId
+    if (error.name === 'CastError' && error.kind === 'ObjectId') {
+      return res.status(400).json({ error: 'Invalid user ID format' });
+    }
+    
+    res.status(500).json({ error: 'Error fetching profile' });
+  }
+};

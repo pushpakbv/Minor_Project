@@ -24,11 +24,18 @@ const postSchema = new mongoose.Schema({
     }],
     comments: [
         {
-            userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+            userId: { 
+                type: mongoose.Schema.Types.ObjectId, 
+                ref: 'User',
+                required: true
+            },
             comment: { type: String },
             createdAt: { type: Date, default: Date.now },
         },
     ],
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
 
 const Post = mongoose.model('Post', postSchema);
