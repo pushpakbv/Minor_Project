@@ -1,60 +1,78 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { ThemeProvider } from './context/ThemeContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import Header from './components/Header';
+import Sidebar from './components/Sidebar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import CreatePost from './pages/CreatePost';
+import Popular from './pages/Popular';
+import Explore from './pages/Explore';
 import ProtectedRoute from './components/ProtectedRoute';
 import './index.css';
+
+const AppContent = () => {
+  const { isDarkMode } = useTheme();
+
+  return (
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <Header />
+      <div className="flex">
+        <Sidebar />
+        <main className="flex-1 ml-64">
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Home/>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile/:userId"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/create-post"
+              element={
+                <ProtectedRoute>
+                  <CreatePost/>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/popular" element={<Popular />} />
+            <Route path="/explore" element={<Explore />} />
+          </Routes>
+        </main>
+      </div>
+    </div>
+  );
+};
 
 const App = () => {
   return (
     <AuthProvider>
       <ThemeProvider>
         <Router>
-          <div className="app-container">
-            <Header />
-            <Routes>
-              <Route path="/Login" element={<Login />} />
-              <Route path="/Signup" element={<Signup />} />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Home/>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile/:userId"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/create-post"
-                element={
-                  <ProtectedRoute>
-                    <CreatePost/>
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </div>
+          <AppContent />
         </Router>
       </ThemeProvider>
     </AuthProvider>
