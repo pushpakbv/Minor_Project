@@ -28,7 +28,7 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await axios.post('/auth/login', formData);
+      const response = await axios.post('auth/login', formData);
       console.log('Login response:', response.data);
       if (response.data.token && response.data.user) {
         login(response.data.token, response.data.user);
