@@ -21,12 +21,21 @@ const Profile = () => {
   const isOwnProfile = !userId || userId === currentUser?.id;
 
   useEffect(() => {
-    // Redirect to login if not authenticated
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
 
+    // For own profile, use current user data initially
+    if (!userId && currentUser) {
+      setUserData({
+        ...currentUser,
+        profileImage: currentUser.profileImage || '/default-avatar.png'
+      });
+      setBio(currentUser.bio || '');
+    }
+
+    // Always fetch fresh data
     const targetId = userId || currentUser?.id;
     if (targetId) {
       fetchUserData(targetId);
@@ -39,11 +48,29 @@ const Profile = () => {
       setIsLoading(true);
       
       const response = await axios.get(`/users/profile/${targetId}`);
-      setUserData(response.data);
-      setBio(response.data.bio || '');
+      const fetchedData = {
+        ...response.data,
+        profileImage: response.data.profileImage || '/default-avatar.png'
+      };
+      
+      setUserData(fetchedData);
+      setBio(fetchedData.bio || '');
+      
+      // Update auth context if it's the current user
+      if (!userId || targetId === currentUser?.id) {
+        updateUser(fetchedData);
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
-      if (error.response?.status === 404) {
+      // If API fails but we have current user data, use that for own profile
+      if (!userId && currentUser && error.response?.status !== 404) {
+        const fallbackData = {
+          ...currentUser,
+          profileImage: currentUser.profileImage || '/default-avatar.png'
+        };
+        setUserData(fallbackData);
+        setBio(fallbackData.bio || '');
+      } else if (error.response?.status === 404) {
         setError('Profile not found');
       } else {
         setError('Failed to load profile data. Please try again.');

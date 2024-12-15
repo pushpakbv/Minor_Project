@@ -80,7 +80,16 @@ exports.validateToken = async (req, res) => {
       return res.status(401).json({ valid: false });
     }
 
-    res.json({ valid: true, user: { username: user.username, email: user.email } });
+    res.json({
+      valid: true,
+      user: {
+        id: user._id.toString(),
+        username: user.username,
+        email: user.email,
+        profileImage: user.profileImage || '/default-avatar.png',
+        bio: user.bio
+      }
+    });
   } catch (error) {
     res.status(401).json({ valid: false });
   }

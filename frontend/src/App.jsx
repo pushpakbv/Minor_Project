@@ -38,6 +38,14 @@ const App = () => {
                 }
               />
               <Route
+                path="/profile/:userId"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/create-post"
                 element={
                   <ProtectedRoute>

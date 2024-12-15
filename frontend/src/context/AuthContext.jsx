@@ -4,8 +4,14 @@ import axios from '../utils/axios';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // Initialize user state from localStorage if available
+  const [user, setUser] = useState(() => {
+    const cachedUser = localStorage.getItem('userData');
+    return cachedUser ? JSON.parse(cachedUser) : null;
+  });
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!localStorage.getItem('token');
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -18,22 +24,34 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         const response = await axios.get('/auth/validate-token');
         if (response.data.valid) {
-          setUser(response.data.user);
+          const userData = response.data.user;
+          setUser(userData);
           setIsAuthenticated(true);
+          localStorage.setItem('userData', JSON.stringify(userData));
         } else {
-          localStorage.removeItem('token');
+          handleLogout();
         }
+      } else {
+        handleLogout();
       }
     } catch (error) {
       console.error('Auth check failed:', error);
-      localStorage.removeItem('token');
+      handleLogout();
     } finally {
       setLoading(false);
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userData');
+    setUser(null);
+    setIsAuthenticated(false);
+  };
+
   const login = (token, userData) => {
     localStorage.setItem('token', token);
+    localStorage.setItem('userData', JSON.stringify(userData));
     setUser(userData);
     setIsAuthenticated(true);
   };
@@ -41,16 +59,17 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await axios.post('/auth/logout');
-      localStorage.removeItem('token');
-      setUser(null);
-      setIsAuthenticated(false);
     } catch (error) {
       console.error('Logout failed:', error);
+    } finally {
+      handleLogout();
     }
   };
 
-  const updateUser = (userData) => {
-    setUser(userData);
+  const updateUser = (updatedData) => {
+    const newUserData = { ...user, ...updatedData };
+    setUser(newUserData);
+    localStorage.setItem('userData', JSON.stringify(newUserData));
   };
 
   return (
