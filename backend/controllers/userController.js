@@ -17,8 +17,30 @@ exports.register = async (req, res) => {
     
     const user = new User({ username, email, password });
     await user.save();
-    res.status(201).json({ message: 'User registered successfully' });
+
+    // Generate token for the new user
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+
+    // Set cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000
+    });
+
+    // Return token and user data
+    res.status(201).json({
+      token,
+      user: {
+        id: user._id.toString(),
+        username: user.username,
+        email: user.email,
+        profileImage: user.profileImage || '/default-avatar.png'
+      }
+    });
   } catch (error) {
+    console.error('Registration error:', error);
     res.status(500).json({ error: error.message });
   }
 };

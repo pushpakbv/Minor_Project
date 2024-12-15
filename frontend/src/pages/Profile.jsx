@@ -16,6 +16,7 @@ const Profile = () => {
   const [profileImage, setProfileImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const isOwnProfile = !userId || userId === currentUser?.id;
@@ -80,7 +81,7 @@ const Profile = () => {
     }
   };
 
-  const handleImageChange = useCallback((e) => {
+  const handleImageChange = useCallback(async (e) => {
     const file = e.target.files[0];
     if (file) {
       const validImageTypes = ['image/jpeg', 'image/png'];
@@ -92,13 +93,41 @@ const Profile = () => {
         setError('Image must be less than 5MB');
         return;
       }
-      setProfileImage(file);
-      if (imagePreview) {
-        URL.revokeObjectURL(imagePreview);
+
+      try {
+        setIsImageLoading(true);
+        setError(null);
+
+        const formData = new FormData();
+        formData.append('profileImage', file);
+
+        const response = await axios.put('/users/profile', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        const updatedUserData = response.data;
+        setUserData(updatedUserData);
+        if (isOwnProfile) {
+          updateUser(updatedUserData);
+        }
+
+        // Clear the file input
+        e.target.value = '';
+      } catch (error) {
+        console.error('Error updating profile picture:', error);
+        setError(error.response?.data?.error || 'Failed to update profile picture');
+      } finally {
+        setIsImageLoading(false);
+        if (imagePreview) {
+          URL.revokeObjectURL(imagePreview);
+        }
+        setImagePreview(null);
+        setProfileImage(null);
       }
-      setImagePreview(URL.createObjectURL(file));
     }
-  }, [imagePreview]);
+  }, [imagePreview, isOwnProfile, updateUser]);
 
   const handleSave = useCallback(async () => {
     setIsLoading(true);
@@ -107,9 +136,6 @@ const Profile = () => {
     try {
       const formData = new FormData();
       formData.append('bio', bio);
-      if (profileImage) {
-        formData.append('profileImage', profileImage);
-      }
 
       const response = await axios.put('/users/profile', formData, {
         headers: {
@@ -123,19 +149,13 @@ const Profile = () => {
         updateUser(updatedUserData);
       }
       setIsEditing(false);
-
-      if (imagePreview) {
-        URL.revokeObjectURL(imagePreview);
-        setImagePreview(null);
-      }
-      setProfileImage(null);
     } catch (error) {
       console.error('Error updating profile:', error);
       setError(error.response?.data?.error || 'Failed to update profile');
     } finally {
       setIsLoading(false);
     }
-  }, [bio, imagePreview, isOwnProfile, profileImage, updateUser]);
+  }, [bio, isOwnProfile, updateUser]);
 
   if (!userData && !error) {
     return (
@@ -179,7 +199,7 @@ const Profile = () => {
           </button>
         </div>
         <div className={`max-w-3xl mx-auto ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-xl transition-all duration-300`}>
-          {isLoading ? (
+          {isLoading || isImageLoading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
             </div>
@@ -190,7 +210,7 @@ const Profile = () => {
                   isDarkMode ? 'ring-gray-700 group-hover:ring-indigo-500' : 'ring-gray-100 group-hover:ring-blue-500'
                 }`}>
                   <img
-                    src={imagePreview || getFullImageUrl(userData.profileImage)}
+                    src={getFullImageUrl(userData.profileImage)}
                     alt={`${userData.username}'s profile`}
                     className="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-110"
                   />
