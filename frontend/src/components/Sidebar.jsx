@@ -1,74 +1,94 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { AiOutlineHome, AiFillFire, AiOutlineCompass, AiOutlinePlus } from 'react-icons/ai';
+import { useAuth } from '../context/AuthContext';
+import { AiOutlineHome, AiFillHome, AiFillFire, AiOutlineCompass, AiOutlineFileText } from 'react-icons/ai';
 
 const Sidebar = () => {
   const { isDarkMode } = useTheme();
+  const { isAuthenticated } = useAuth();
   const location = useLocation();
-
-  const isActive = (path) => location.pathname === path;
-
-  const menuItems = [
-    { icon: AiOutlineHome, label: 'Home', path: '/' },
-    { icon: AiFillFire, label: 'Popular', path: '/popular' },
-    { icon: AiOutlineCompass, label: 'Explore', path: '/explore' },
-  ];
 
   // Don't show sidebar on login and signup pages
   if (location.pathname === '/login' || location.pathname === '/signup') {
     return null;
   }
 
-  const CustomFeedSection = () => (
-    <div className="mt-6">
-      <div className={`px-6 py-3 text-sm font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-        CUSTOM FEEDS
-      </div>
-      <button
-        className={`w-full px-6 py-2 flex items-center space-x-2 text-sm hover:bg-opacity-10 transition-colors duration-200 ${
-          isDarkMode ? 'hover:bg-gray-300 text-gray-300' : 'hover:bg-gray-100 text-gray-700'
-        }`}
-      >
-        <AiOutlinePlus className="w-5 h-5" />
-        <span>Create a custom feed</span>
-      </button>
-    </div>
-  );
+  const navItems = [
+    {
+      to: '/',
+      icon: location.pathname === '/' ? AiFillHome : AiOutlineHome,
+      label: 'Home'
+    },
+    {
+      to: '/popular',
+      icon: AiFillFire,
+      label: 'Popular'
+    },
+    {
+      to: '/explore',
+      icon: AiOutlineCompass,
+      label: 'Explore'
+    }
+  ];
 
   return (
-    <div className={`w-64 h-screen fixed left-0 top-16 ${isDarkMode ? 'bg-gray-900' : 'bg-white'} border-r ${
+    <div className={`w-64 fixed top-16 bottom-0 left-0 ${
+      isDarkMode ? 'bg-gray-900' : 'bg-white'
+    } border-r ${
       isDarkMode ? 'border-gray-800' : 'border-gray-200'
-    } overflow-y-auto`}>
-      <nav className="py-4">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          const active = isActive(item.path);
-          
-          return (
+    } z-10`}>
+      <div className="flex flex-col h-full pt-4">
+        <nav className="space-y-1 px-2">
+          {navItems.map(({ to, icon: Icon, label }) => (
             <Link
-              key={item.path}
-              to={item.path}
-              className={`px-6 py-2 flex items-center space-x-2 ${
-                active
+              key={to}
+              to={to}
+              className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
+                location.pathname === to
                   ? isDarkMode
                     ? 'bg-gray-800 text-white'
                     : 'bg-gray-100 text-gray-900'
                   : isDarkMode
-                  ? 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  ? 'text-gray-300 hover:bg-gray-800 hover:text-white'
                   : 'text-gray-700 hover:bg-gray-100'
-              } transition-colors duration-200`}
+              }`}
             >
-              <Icon className="w-5 h-5" />
-              <span className="font-medium">{item.label}</span>
+              <Icon className="h-5 w-5 mr-3" />
+              {label}
             </Link>
-          );
-        })}
+          ))}
+        </nav>
 
-        <div className="border-b border-gray-200 my-4" />
-
-        <CustomFeedSection />
-      </nav>
+        {isAuthenticated && (
+          <>
+            <div className="mt-8 px-2">
+              <h3 className={`px-3 text-xs font-semibold ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-500'
+              } uppercase tracking-wider`}>
+                YOUR CONTENT
+              </h3>
+              <div className="mt-1">
+                <Link
+                  to="/your-posts"
+                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
+                    location.pathname === '/your-posts'
+                      ? isDarkMode
+                        ? 'bg-gray-800 text-white'
+                        : 'bg-gray-100 text-gray-900'
+                      : isDarkMode
+                      ? 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <AiOutlineFileText className="h-5 w-5 mr-3" />
+                  Your Posts
+                </Link>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import Header from './components/Header';
@@ -11,6 +11,7 @@ import Profile from './pages/Profile';
 import CreatePost from './pages/CreatePost';
 import Popular from './pages/Popular';
 import Explore from './pages/Explore';
+import YourPosts from './pages/YourPosts';
 import ProtectedRoute from './components/ProtectedRoute';
 import './index.css';
 
@@ -24,14 +25,7 @@ const AppContent = () => {
         <Sidebar />
         <main className="flex-1 ml-64">
           <Routes>
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Home/>
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route
@@ -60,6 +54,14 @@ const AppContent = () => {
             />
             <Route path="/popular" element={<Popular />} />
             <Route path="/explore" element={<Explore />} />
+            <Route 
+              path="/your-posts" 
+              element={
+                <ProtectedRoute>
+                  <YourPosts />
+                </ProtectedRoute>
+              } 
+            />
           </Routes>
         </main>
       </div>

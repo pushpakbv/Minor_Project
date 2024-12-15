@@ -4,14 +4,16 @@ import { Link } from 'react-router-dom';
 import { getFullImageUrl } from '../utils/imageUtils';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { AiOutlineHeart, AiFillHeart, AiOutlineComment, AiOutlineDelete } from 'react-icons/ai';
 
-const Post = ({ post }) => {
+const Post = ({ post, onPostUpdate, showDeleteButton = false }) => {
   const [likes, setLikes] = useState(post.likes?.length || 0);
   const [isLiked, setIsLiked] = useState(post.isLiked || false);
   const [comments, setComments] = useState(post.comments || []);
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [likeLoading, setLikeLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const { user: currentUser, isAuthenticated } = useAuth();
   const { isDarkMode } = useTheme();
 
@@ -83,30 +85,75 @@ const Post = ({ post }) => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this post?')) {
+      return;
+    }
+
+    try {
+      setDeleteLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No auth token found');
+        return;
+      }
+
+      const response = await axios.delete(`/posts/${post._id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data && response.data.success) {
+        if (onPostUpdate) {
+          onPostUpdate();
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   const isVideo = post.media?.match(/\.(mp4|webm|ogg)$/i);
 
   return (
     <div className={`rounded-lg shadow-md p-4 mb-4 ${isDarkMode ? 'bg-[#1a1a1b]' : 'bg-white'}`}>
       {/* User info section */}
-      <div className="flex items-center mb-4">
-        <Link to={`/profile/${post.user._id}`} className="flex items-center hover:opacity-90 transition-opacity">
-          <img
-            src={getFullImageUrl(post.user.profileImage)}
-            alt={post.user.username}
-            className="w-10 h-10 rounded-full object-cover mr-3 border border-gray-200"
-            onError={(e) => {
-              e.target.src = '/default-avatar.png';
-            }}
-          />
-          <div>
-            <h3 className={`font-semibold hover:text-blue-600 transition-colors ${isDarkMode ? 'text-[#d7dadc]' : 'text-gray-900'}`}>
-              {post.user.username}
-            </h3>
-            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              {new Date(post.createdAt).toLocaleDateString()} at {new Date(post.createdAt).toLocaleTimeString()}
-            </p>
-          </div>
-        </Link>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center">
+          <Link to={`/profile/${post.user._id}`} className="flex items-center hover:opacity-90 transition-opacity">
+            <img
+              src={getFullImageUrl(post.user.profileImage)}
+              alt={post.user.username}
+              className="w-10 h-10 rounded-full object-cover mr-3 border border-gray-200"
+              onError={(e) => {
+                e.target.src = '/default-avatar.png';
+              }}
+            />
+            <div>
+              <h3 className={`font-semibold hover:text-blue-600 transition-colors ${isDarkMode ? 'text-[#d7dadc]' : 'text-gray-900'}`}>
+                {post.user.username}
+              </h3>
+              <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                {new Date(post.createdAt).toLocaleDateString()} at {new Date(post.createdAt).toLocaleTimeString()}
+              </p>
+            </div>
+          </Link>
+        </div>
+        {showDeleteButton && post.user?._id === currentUser?._id && (
+          <button
+            onClick={handleDelete}
+            disabled={deleteLoading}
+            className={`p-2 rounded-full transition-colors ${
+              isDarkMode 
+                ? 'hover:bg-red-900/50 text-gray-400 hover:text-red-400' 
+                : 'hover:bg-red-100 text-gray-600 hover:text-red-600'
+            }`}
+            title="Delete post"
+          >
+            <AiOutlineDelete className="w-5 h-5" />
+          </button>
+        )}
       </div>
       
       {/* Post content */}

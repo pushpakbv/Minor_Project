@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const authenticate = require('../middlewares/authMiddleware');
 const path = require('path');
-const {createPost, getPosts, likePost,getComments,commentPost} = require('../controllers/postController');
+const {createPost, getPosts, likePost, getComments, commentPost, getUserPosts, deletePost} = require('../controllers/postController');
 
 const router = express.Router();
 
@@ -62,9 +62,11 @@ const upload = multer({
 
 router.post('/create', authenticate, upload.single('media'), createPost);
 router.get('/', authenticate, getPosts);
+router.get('/user-posts', authenticate, getUserPosts);
 router.post('/:postId/like', authenticate, likePost);
 router.post('/:postId/comment', authenticate, commentPost);
 router.get('/:postId/comments', getComments);
+router.delete('/:postId', authenticate, deletePost);
 
 module.exports = router;
 // Fetch all posts

@@ -173,3 +173,73 @@ exports.getComments = async (req, res) => {
         res.status(500).json({ error: 'Error fetching comments' });
       }
 };
+
+exports.getUserPosts = async (req, res) => {
+    try {
+        const posts = await Post.find({ userId: req.user.id })
+            .sort({ createdAt: -1 })
+            .populate('userId', 'username profileImage')
+            .populate('comments.userId', 'username profileImage')
+            .populate('likes', 'username');
+            
+        const formattedPosts = posts.map(post => ({
+            ...post.toJSON(),
+            user: {
+                id: post.userId._id,
+                username: post.userId.username,
+                profileImage: post.userId.profileImage || '/default-avatar.png'
+            },
+            isLiked: post.likes.some(like => like._id.toString() === req.user.id),
+            comments: post.comments.map(comment => ({
+                ...comment.toJSON(),
+                user: {
+                    id: comment.userId._id,
+                    username: comment.userId.username,
+                    profileImage: comment.userId.profileImage || '/default-avatar.png'
+                }
+            }))
+        }));
+
+        res.status(200).json({ posts: formattedPosts });
+    } catch (error) {
+        console.error('Error fetching user posts:', error);
+        res.status(500).json({ error: 'Error fetching user posts' });
+    }
+};
+
+exports.deletePost = async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const userId = req.user.id;
+
+        // Find the post and check if it belongs to the user
+        const post = await Post.findById(postId);
+        if (!post) {
+            return res.status(404).json({ 
+                success: false,
+                error: 'Post not found' 
+            });
+        }
+
+        if (post.userId.toString() !== userId) {
+            return res.status(403).json({ 
+                success: false,
+                error: 'You can only delete your own posts' 
+            });
+        }
+
+        // Delete the post
+        await Post.findByIdAndDelete(postId);
+        
+        return res.status(200).json({ 
+            success: true,
+            message: 'Post deleted successfully'
+        });
+    } catch (error) {
+        console.error('Delete post error:', error);
+        return res.status(500).json({ 
+            success: false,
+            error: 'Error deleting post'
+        });
+    }
+};
