@@ -54,8 +54,16 @@ const Signup = () => {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 ${isDarkMode ? 'bg-[#1a1a1b]' : 'bg-blue-50'}`}>
-      <div className={`max-w-md w-full rounded-lg shadow-md p-8 space-y-6 ${isDarkMode ? 'bg-[#272729]' : 'bg-white'}`}>
+    <div className={`min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 ${
+      isDarkMode 
+        ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' 
+        : 'bg-gradient-to-br from-gray-50 via-white to-blue-50'
+    }`}>
+      <div className={`max-w-md w-full rounded-xl shadow-2xl p-8 space-y-6 transform transition-all duration-300 hover:scale-[1.02] ${
+        isDarkMode 
+          ? 'bg-gray-800/90 backdrop-blur-sm shadow-gray-900/50' 
+          : 'bg-white/80 backdrop-blur-sm shadow-xl'
+      }`}>
         <div>
           <img
             className="mx-auto h-12 w-auto rounded-full"

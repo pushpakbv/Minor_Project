@@ -65,6 +65,11 @@ const CreatePost = () => {
       setText('');
       setMedia(null);
       setMediaPreview(null);
+      
+      // Navigate to home page after successful post creation
+      setTimeout(() => {
+        navigate('/');
+      }, 1000);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create post');
       console.error('Error creating post:', err);
@@ -76,8 +81,19 @@ const CreatePost = () => {
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'} py-8 transition-colors duration-300`}>
       <div className={`max-w-lg mx-auto ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg p-6 transition-colors duration-300`}>
-        <h2 className={`text-2xl font-bold text-center mb-6 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Create a Post</h2>
-        
+        <div className="flex justify-between items-center mb-6">
+          <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Create a Post</h2>
+          <button
+            onClick={() => navigate(-1)}
+            className={`px-4 py-2 rounded-lg transition-colors duration-300 ${
+              isDarkMode 
+                ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+            }`}
+          >
+            Back
+          </button>
+        </div>
         {error && <p className={`text-red-500 text-center mb-4 ${isDarkMode ? 'text-red-400' : 'text-red-500'}`}>{error}</p>}
         {success && <p className={`text-green-500 text-center mb-4 ${isDarkMode ? 'text-green-400' : 'text-green-500'}`}>{success}</p>}
         <form onSubmit={handlePostCreation}>

@@ -100,8 +100,7 @@ const Profile = () => {
     }
   }, [imagePreview]);
 
-  const handleSubmit = useCallback(async (e) => {
-    e.preventDefault();
+  const handleSave = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -138,170 +137,158 @@ const Profile = () => {
     }
   }, [bio, imagePreview, isOwnProfile, profileImage, updateUser]);
 
-  const handleCancel = useCallback(() => {
-    setIsEditing(false);
-    setBio(userData?.bio || '');
-    setProfileImage(null);
-    if (imagePreview) {
-      URL.revokeObjectURL(imagePreview);
-      setImagePreview(null);
-    }
-  }, [imagePreview, userData?.bio]);
-
   if (!userData && !error) {
-    return <div className={`text-center py-8 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}><svg className="animate-spin h-5 w-5 mr-2 inline" viewBox="0 0 24 24">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-    </svg>Loading...</div>;
+    return (
+      <div className={`min-h-screen py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-300 ${
+        isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-gradient-to-br from-blue-50 to-indigo-50 text-gray-900'
+      }`}>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className={`text-center text-red-500 py-8 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{error}</div>;
+    return (
+      <div className={`min-h-screen py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-300 ${
+        isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-gradient-to-br from-blue-50 to-indigo-50 text-gray-900'
+      }`}>
+        <div className="p-8 text-center">
+          <div className="text-red-500 font-medium">{error}</div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className={`max-w-4xl mx-auto p-6 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'} transition-colors duration-300`}>
-      <div className="mb-4">
-        <button
-          onClick={() => navigate(-1)}
-          className={`flex items-center text-gray-600 hover:text-gray-800 transition-colors ${isDarkMode ? 'text-white' : 'text-gray-800'}`}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 mr-2"
-            viewBox="0 0 20 20"
-            fill="currentColor"
+    <div className={`min-h-screen py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-300 ${
+      isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-cyan-50 text-gray-900'
+    }`}>
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+              isDarkMode
+                ? 'bg-gray-800 hover:bg-gray-700 text-gray-200'
+                : 'bg-white/80 hover:bg-white/90 text-indigo-600 backdrop-blur-sm'
+            }`}
           >
-            <path
-              fillRule="evenodd"
-              d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L4.414 9H17a1 1 0 110 2H4.414l5.293 5.293a1 1 0 010 1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Back
-        </button>
-      </div>
-      <div className={`bg-white rounded-lg shadow-lg overflow-hidden ${isDarkMode ? 'bg-gray-800' : 'bg-white'} transition-colors duration-300`}>
-        <div className="relative h-48 bg-gradient-to-r from-blue-400 to-teal-400">
-          <img src="/logo.jpeg" alt="Logo" className="absolute top-4 left-4 w-12 h-12" />
-          <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2">
-            <div className="relative">
-              <img
-                src={imagePreview || getFullImageUrl(userData?.profileImage)}
-                alt={`${userData?.username}'s profile`}
-                className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
-                onError={(e) => {
-                  e.target.src = '/default-avatar.png';
-                }}
-              />
-              {isOwnProfile && isEditing && (
-                <div className="absolute bottom-0 right-0">
-                  <label className={`bg-white hover:bg-gray-100 text-blue-600 rounded-full p-2 cursor-pointer shadow-md transition-all duration-200 hover:scale-105 ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}>
+            ← Back
+          </button>
+        </div>
+        <div className={`max-w-3xl mx-auto ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-xl transition-all duration-300`}>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            </div>
+          ) : (
+            <div className="p-6 space-y-6">
+              <div className="relative group">
+                <div className={`w-32 h-32 mx-auto rounded-full overflow-hidden ring-4 transition-all duration-300 ${
+                  isDarkMode ? 'ring-gray-700 group-hover:ring-indigo-500' : 'ring-gray-100 group-hover:ring-blue-500'
+                }`}>
+                  <img
+                    src={imagePreview || getFullImageUrl(userData.profileImage)}
+                    alt={`${userData.username}'s profile`}
+                    className="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-110"
+                  />
+                </div>
+                
+                {isOwnProfile && (
+                  <div className="absolute bottom-0 right-1/2 transform translate-x-1/2 translate-y-1/2">
+                    <label htmlFor="profile-image" className={`flex items-center justify-center w-10 h-10 rounded-full cursor-pointer 
+                      transition-all duration-300 ${
+                        isDarkMode 
+                          ? 'bg-gray-700 hover:bg-indigo-600 text-gray-300 hover:text-white' 
+                          : 'bg-white hover:bg-blue-500 text-gray-600 hover:text-white'
+                      } shadow-lg`}>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </label>
                     <input
                       type="file"
+                      id="profile-image"
                       className="hidden"
-                      accept="image/*"
+                      accept="image/jpeg,image/png"
                       onChange={handleImageChange}
                     />
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </label>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-        
-        <div className={`pt-20 px-6 pb-6 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-          <div className="text-center mb-6">
-            <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{userData?.username}</h1>
-            <p className={`text-gray-500 mt-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Joined {new Date(userData?.joinedAt).toLocaleDateString()}</p>
-          </div>
-
-          {isEditing ? (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'} mb-1`}>Bio</label>
-                <textarea
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}
-                  rows="4"
-                  placeholder="Tell us about yourself..."
-                  maxLength={500}
-                />
-                <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mt-1`}>{bio.length}/500 characters</p>
+                  </div>
+                )}
               </div>
 
-              {error && (
-                <div className={`text-red-500 text-sm bg-red-50 p-3 rounded-md ${isDarkMode ? 'bg-gray-700' : 'bg-red-50'}`}>
-                  {error}
-                </div>
-              )}
-
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className={`px-4 py-2 border border-gray-300 rounded-md ${isDarkMode ? 'text-white' : 'text-gray-700'} hover:bg-gray-50 transition-colors ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}
-                  disabled={isLoading}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={`px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors flex items-center ${isDarkMode ? 'bg-teal-600' : 'bg-teal-600'}`}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Saving...
-                    </>
-                  ) : (
-                    'Save Changes'
-                  )}
-                </button>
-              </div>
-            </form>
-          ) : (
-            <div>
-              <div className={`bg-gray-50 rounded-lg p-4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                <p className={`text-gray-700 whitespace-pre-wrap ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
-                  {userData?.bio || 'No bio yet.'}
+              <div className="text-center space-y-2">
+                <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {userData.username}
+                </h1>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  {userData.email}
                 </p>
               </div>
-              {isOwnProfile && (
-                <div className="mt-4 flex justify-end">
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className={`px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors flex items-center ${isDarkMode ? 'bg-teal-600' : 'bg-teal-600'}`}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 mr-2"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                    </svg>
-                    Edit Profile
-                  </button>
-                </div>
-              )}
+
+              <div className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'} transition-colors duration-300`}>
+                {isEditing ? (
+                  <div className="space-y-4">
+                    <textarea
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      className={`w-full p-3 rounded-lg transition-colors duration-300 ${
+                        isDarkMode 
+                          ? 'bg-gray-800 text-white border-gray-600 focus:border-indigo-500' 
+                          : 'bg-white text-gray-900 border-gray-300 focus:border-blue-500'
+                      } border focus:ring-2 focus:ring-opacity-50`}
+                      rows="4"
+                      placeholder="Write something about yourself..."
+                    />
+                    <div className="flex justify-end space-x-3">
+                      <button
+                        onClick={() => {
+                          setIsEditing(false);
+                          setBio(userData.bio || '');
+                        }}
+                        className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                          isDarkMode
+                            ? 'bg-gray-600 hover:bg-gray-500 text-gray-200'
+                            : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                        }`}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSave}
+                        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 
+                          text-white rounded-lg transition-all duration-300 transform hover:scale-105"
+                      >
+                        Save Changes
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'} whitespace-pre-wrap`}>
+                      {userData.bio || 'No bio yet.'}
+                    </p>
+                    {isOwnProfile && (
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className={`absolute top-0 right-0 p-2 rounded-lg transition-colors duration-300 ${
+                          isDarkMode
+                            ? 'text-gray-400 hover:text-white hover:bg-gray-600'
+                            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
+                        }`}
+                        aria-label="Edit bio"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
