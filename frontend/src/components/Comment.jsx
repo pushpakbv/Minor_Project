@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../utils/axios';
+import { useAuth } from '../context/AuthContext';
+import { getFullImageUrl } from '../utils/imageUtils';
 
 const Comments = ({ postId }) => {
+  const { user: currentUser } = useAuth();
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchComments();
+  }, [postId]);
 
   const fetchComments = async () => {
     try {
@@ -27,11 +34,20 @@ const Comments = ({ postId }) => {
 
     try {
       setIsLoading(true);
-      const response = await axios.post(`/posts/${postId}/comment`, 
-        { comment: newComment }
-      );
-      
-      setComments([...comments, response.data.comment]);
+      const response = await axios.post(`/posts/${postId}/comment`, { 
+        content: newComment 
+      });
+
+      // Add the new comment to the list with user data
+      setComments(prevComments => [{
+        ...response.data.comment,
+        user: {
+          id: currentUser.id,
+          username: currentUser.username,
+          profileImage: currentUser.profileImage
+        }
+      }, ...prevComments]);
+
       setNewComment('');
       setError('');
     } catch (error) {
@@ -42,60 +58,54 @@ const Comments = ({ postId }) => {
     }
   };
 
-  useEffect(() => {
-    fetchComments();
-  }, [postId]);
-
   if (isLoading && !comments.length) {
     return <div className="text-center py-4">Loading comments...</div>;
   }
 
   return (
-    <div className="comments mt-4">
+    <div className="comments mt-4 space-y-4">
       {error && (
         <div className="text-red-500 mb-4">{error}</div>
       )}
       
-      <div className="space-y-4">
-        {comments.map((comment, index) => (
-          <div key={index} className="flex items-start space-x-3">
-            <img
-              src={comment.user?.profileImage || '/default-avatar.png'}
-              alt={comment.user?.username}
-              className="w-8 h-8 rounded-full object-cover"
-              onError={(e) => {
-                e.target.src = '/default-avatar.png';
-              }}
-            />
-            <div className="flex-1">
-              <p className="font-semibold text-sm">{comment.user?.username}</p>
-              <p className="text-sm text-gray-600">{comment.comment}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <form onSubmit={handleAddComment} className="mt-4">
-        <textarea
+      <form onSubmit={handleAddComment} className="flex items-center space-x-2">
+        <img
+          src={getFullImageUrl(currentUser?.profileImage)}
+          alt={currentUser?.username}
+          className="w-8 h-8 rounded-full object-cover"
+        />
+        <input
+          type="text"
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Write a comment..."
-          className="w-full border p-2 rounded resize-none focus:ring-2 focus:ring-blue-500"
-          rows="2"
+          className="flex-1 p-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none"
           disabled={isLoading}
         />
         <button
           type="submit"
           disabled={isLoading || !newComment.trim()}
-          className={`mt-2 px-4 py-2 rounded text-white ${
-            isLoading || !newComment.trim() 
-              ? 'bg-blue-300' 
-              : 'bg-blue-600 hover:bg-blue-700'
-          }`}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
         >
-          {isLoading ? 'Posting...' : 'Post Comment'}
+          Post
         </button>
       </form>
+
+      <div className="space-y-4">
+        {comments.map(comment => (
+          <div key={comment._id} className="flex space-x-2">
+            <img
+              src={getFullImageUrl(comment.user?.profileImage)}
+              alt={comment.user?.username}
+              className="w-8 h-8 rounded-full object-cover"
+            />
+            <div>
+              <div className="font-semibold">{comment.user?.username}</div>
+              <div className="text-sm">{comment.content}</div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

@@ -21,141 +21,92 @@ const Profile = () => {
 
   const isOwnProfile = !userId || userId === currentUser?.id;
 
+  const fetchUserData = useCallback(async (targetId) => {
+    try {
+      setError(null);
+      setIsLoading(true);
+      
+      const response = await axios.get(`/users/profile/${targetId}`);
+      const userData = response.data.user;
+      
+      setUserData(userData);
+      setBio(userData.bio || '');
+      setImagePreview(userData.profileImage);
+
+      // Update auth context if it's the current user
+      if (isOwnProfile) {
+        updateUser(userData);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      setError('Failed to load user data');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isOwnProfile, updateUser]);
+
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
 
-    // For own profile, use current user data initially
-    if (!userId && currentUser) {
-      setUserData({
-        ...currentUser,
-        profileImage: currentUser.profileImage || '/default-avatar.png'
-      });
-      setBio(currentUser.bio || '');
-    }
-
-    // Always fetch fresh data
     const targetId = userId || currentUser?.id;
     if (targetId) {
       fetchUserData(targetId);
     }
-  }, [userId, currentUser?.id, isAuthenticated, navigate]);
+  }, [userId, currentUser?.id, isAuthenticated, navigate, fetchUserData]);
 
-  const fetchUserData = async (targetId) => {
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
     try {
-      setError(null);
       setIsLoading(true);
-      
-      const response = await axios.get(`/users/profile/${targetId}`);
-      const fetchedData = {
-        ...response.data,
-        profileImage: response.data.profileImage || '/default-avatar.png'
-      };
-      
-      setUserData(fetchedData);
-      setBio(fetchedData.bio || '');
-      
-      // Update auth context if it's the current user
-      if (!userId || targetId === currentUser?.id) {
-        updateUser(fetchedData);
+      setError(null);
+
+      const formData = new FormData();
+      if (bio !== userData?.bio) {
+        formData.append('bio', bio);
       }
+      if (profileImage) {
+        formData.append('profileImage', profileImage);
+      }
+
+      const response = await axios.put('/users/profile', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      const updatedUser = response.data.user;
+      
+      // Update local state
+      setUserData(updatedUser);
+      setBio(updatedUser.bio || '');
+      setImagePreview(updatedUser.profileImage);
+      setProfileImage(null);
+      
+      // Update auth context
+      updateUser(updatedUser);
+      
+      setIsEditing(false);
+      
+      // Force reload user data
+      fetchUserData(currentUser.id);
     } catch (error) {
-      console.error('Error fetching profile:', error);
-      // If API fails but we have current user data, use that for own profile
-      if (!userId && currentUser && error.response?.status !== 404) {
-        const fallbackData = {
-          ...currentUser,
-          profileImage: currentUser.profileImage || '/default-avatar.png'
-        };
-        setUserData(fallbackData);
-        setBio(fallbackData.bio || '');
-      } else if (error.response?.status === 404) {
-        setError('Profile not found');
-      } else {
-        setError('Failed to load profile data. Please try again.');
-      }
+      console.error('Error updating profile:', error);
+      setError('Failed to update profile');
     } finally {
       setIsLoading(false);
     }
   };
-
-  const handleImageChange = useCallback(async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const validImageTypes = ['image/jpeg', 'image/png'];
-      if (!validImageTypes.includes(file.type)) {
-        setError('Only JPEG and PNG formats are supported');
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Image must be less than 5MB');
-        return;
-      }
-
-      try {
-        setIsImageLoading(true);
-        setError(null);
-
-        const formData = new FormData();
-        formData.append('profileImage', file);
-
-        const response = await axios.put('/users/profile', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-
-        const updatedUserData = response.data;
-        setUserData(updatedUserData);
-        if (isOwnProfile) {
-          updateUser(updatedUserData);
-        }
-
-        // Clear the file input
-        e.target.value = '';
-      } catch (error) {
-        console.error('Error updating profile picture:', error);
-        setError(error.response?.data?.error || 'Failed to update profile picture');
-      } finally {
-        setIsImageLoading(false);
-        if (imagePreview) {
-          URL.revokeObjectURL(imagePreview);
-        }
-        setImagePreview(null);
-        setProfileImage(null);
-      }
-    }
-  }, [imagePreview, isOwnProfile, updateUser]);
-
-  const handleSave = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const formData = new FormData();
-      formData.append('bio', bio);
-
-      const response = await axios.put('/users/profile', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      const updatedUserData = response.data;
-      setUserData(updatedUserData);
-      if (isOwnProfile) {
-        updateUser(updatedUserData);
-      }
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      setError(error.response?.data?.error || 'Failed to update profile');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [bio, isOwnProfile, updateUser]);
 
   if (!userData && !error) {
     return (
@@ -210,7 +161,7 @@ const Profile = () => {
                   isDarkMode ? 'ring-gray-700 group-hover:ring-indigo-500' : 'ring-gray-100 group-hover:ring-blue-500'
                 }`}>
                   <img
-                    src={getFullImageUrl(userData.profileImage)}
+                    src={getFullImageUrl(imagePreview || userData.profileImage)}
                     alt={`${userData.username}'s profile`}
                     className="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-110"
                   />
@@ -278,7 +229,7 @@ const Profile = () => {
                         Cancel
                       </button>
                       <button
-                        onClick={handleSave}
+                        onClick={handleUpdateProfile}
                         className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 
                           text-white rounded-lg transition-all duration-300 transform hover:scale-105"
                       >
