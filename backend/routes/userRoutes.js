@@ -2,9 +2,14 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 const authenticate = require('../middlewares/authMiddleware');
-const upload = require('../middlewares/uploadMiddleware');
+const { upload } = require('../middlewares/uploadMiddleware');
 
+// Profile routes
 router.get('/profile/:userId', authenticate, userController.getProfile);
-router.put('/profile', authenticate, upload.single('profileImage'), userController.updateProfile);
+router.put('/profile', 
+  authenticate, 
+  upload.single('profileImage'),
+  userController.updateProfile
+);
 
-module.exports = router; 
+module.exports = router;

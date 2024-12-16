@@ -29,8 +29,21 @@ const Signup = () => {
     setIsLoading(true);
     setError('');
 
+    // Client-side validation
+    if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
+      setError('All fields are required');
+      setIsLoading(false);
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
       setIsLoading(false);
       return;
     }
@@ -47,7 +60,7 @@ const Signup = () => {
         navigate('/');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create account');
+      setError(err.response?.data?.error || 'Failed to create account');
     } finally {
       setIsLoading(false);
     }
