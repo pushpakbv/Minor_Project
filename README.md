@@ -58,7 +58,7 @@ A full-stack social media platform built with the MERN stack (MongoDB, Express.j
 
 1. Clone the repository
 ```bash
-git clone [your-repo-url]
+git clone https://github.com/pushpakbv/Minor_Project.git
 cd Minor_Project
 ```
 
