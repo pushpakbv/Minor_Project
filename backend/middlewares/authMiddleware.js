@@ -12,7 +12,7 @@ const authenticate = (req, res, next) => {
     
     // Make sure we're setting the full user object with id
     req.user = {
-      id: decoded.id,
+      id: decoded.userId, 
       // Add other user properties if needed
     };
     

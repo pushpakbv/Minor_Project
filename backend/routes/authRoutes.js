@@ -2,19 +2,19 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const router = express.Router();
-const { login, register ,logout, validateToken} = require('../controllers/userController');
-// const cookieParser = require('cookie-parser');
-// router.use(cookieParser());
-
+const { 
+    login, 
+    register, 
+    logout, 
+    validateToken 
+} = require('../controllers/authController');
 
 router.post('/register', register);
 router.post('/login', login);
 router.post('/logout', logout);
 router.get('/validate-token', validateToken);
 
-
 module.exports = router;
-
 
 // // Register
 // router.post('/register', async (req, res) => {
@@ -50,5 +50,3 @@ module.exports = router;
 //     res.status(500).json({ error: error.message });
 //   }
 // });
-
-// module.exports = router;
