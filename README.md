@@ -1,4 +1,4 @@
-# Social Media Application
+# TheCipher-Social Media Application
 
 A full-stack social media platform built with the MERN stack (MongoDB, Express.js, React.js, Node.js) featuring real-time interactions, media sharing, and modern UI/UX.
 
